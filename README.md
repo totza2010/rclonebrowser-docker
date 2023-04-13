@@ -4,9 +4,9 @@ A repository for creating a docker container including RClone Browser with GUI i
 
 Thank you for continue developing this awesome software :)
 
-[![](https://images.microbadger.com/badges/version/romancin/rclonebrowser.svg)](https://microbadger.com/images/romancin/rclonebrowser "Docker image version")
-[![](https://images.microbadger.com/badges/image/romancin/rclonebrowser.svg)](https://microbadger.com/images/romancin/rclonebrowser "Docker image size")
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=X2CT2SWQCP74U)
+> Github: https://github.com/appotry/rclonebrowser-docker
+>
+> Dockerhub: https://hub.docker.com/r/bloodstar/rclonebrowser
 
 You can invite me a beer if you want ;)
 
@@ -33,7 +33,7 @@ docker run -d --name=rclonebrowser \
 -e GROUP_ID=0 -e USER_ID=0 -e TZ=Europe/Madrid \
 -p 5800:5800 \
 -p 5900:5900 \
-romancin/rclonebrowser:latest
+bloodstar/rclonebrowser:latest
 ```
 
 Browse to `http://your-host-ip:5800` to access the RClone Browser GUI.
