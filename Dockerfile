@@ -1,83 +1,102 @@
 #
-# RcloneBrowser Dockerfile
+# Custom RcloneBrowser (Qt5 + Teldrive build)
 #
 
-FROM jlesage/baseimage-gui:alpine-3.12-glibc
+# =========================
+# ==== BUILD STAGE ========
+# =========================
+FROM alpine:3.20 AS build
 
-# Define build arguments
-ARG RCLONE_VERSION=current
+ARG ARCH=amd64
+ARG RCLONE_VERSION=v1.71.0
+ARG RCLONE_URL="https://github.com/tgdrive/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-${ARCH}.zip"
 
-# Define environment variables
-ENV ARCH=amd64
-
-# Define working directory.
-WORKDIR /tmp
-
-# Install Rclone Browser dependencies
-
-RUN apk --no-cache add \
-      ca-certificates \
-      fuse \
-      wget \
-      qt5-qtbase \
-      qt5-qtbase-x11 \
-      libstdc++ \
-      libgcc \
-      dbus \
-      xterm \
-    && cd /tmp \
-    && wget -q http://downloads.rclone.org/rclone-${RCLONE_VERSION}-linux-${ARCH}.zip \
-    && unzip /tmp/rclone-${RCLONE_VERSION}-linux-${ARCH}.zip \
-    && mv /tmp/rclone-*-linux-${ARCH}/rclone /usr/bin \
-    && rm -r /tmp/rclone* && \
-
-    apk add --no-cache --virtual=build-dependencies \
+# ติดตั้ง dependencies ที่จำเป็นสำหรับ build
+RUN apk add --no-cache --virtual .build-deps \
         build-base \
         cmake \
-        make \
-        gcc \
         git \
-        qt5-qtbase qt5-qtmultimedia-dev qt5-qttools-dev && \
+        wget \
+        unzip \
+        qt5-qtbase-dev \
+        qt5-qtmultimedia-dev \
+        qt5-qttools-dev \
+        qt5-qtdeclarative-dev \
+        qt5-qtsvg-dev \
+        qt5-qtbase-x11
 
-# Compile RcloneBrowser
-    git clone https://github.com/kapitainsky/RcloneBrowser.git /tmp && \
-    mkdir /tmp/build && \
-    cd /tmp/build && \
-    cmake .. && \
-    cmake --build . && \
-    ls -l /tmp/build && \
-    cp /tmp/build/build/rclone-browser /usr/bin  && \
+# ดาวน์โหลด rclone (Teldrive)
+RUN wget -qO /tmp/rclone.zip "${RCLONE_URL}" \
+    && unzip -q /tmp/rclone.zip -d /tmp \
+    && mv /tmp/rclone-*-linux-${ARCH}/rclone /usr/local/bin/ \
+    && chmod +x /usr/local/bin/rclone \
+    && rm -rf /tmp/rclone*
 
-    # cleanup
-     apk del --purge build-dependencies && \
-    rm -rf /tmp/*
+# ดึงซอร์สโค้ดของคุณ
+WORKDIR /tmp/src
+RUN git clone https://github.com/totza2010/RcloneBrowser.git . \
+    && mkdir build && cd build \
+    && cmake .. -DCMAKE_BUILD_TYPE=Release \
+    && make -j$(nproc) \
+    && strip build/rclone-browser
 
-# Maximize only the main/initial window.
-RUN \
-    sed-patch 's/<application type="normal">/<application type="normal" title="Rclone Browser">/' \
-        /etc/xdg/openbox/rc.xml
+# =========================
+# ==== RUNTIME STAGE ======
+# =========================
+FROM jlesage/baseimage-gui:alpine-3.20-glibc
 
-# Generate and install favicons.
-RUN \
-    APP_ICON_URL=https://github.com/rclone/rclone/raw/master/graphics/logo/logo_symbol/logo_symbol_color_512px.png && \
-    install_app_icon.sh "$APP_ICON_URL"
+# สภาพแวดล้อม GUI
+ENV APP_NAME="RcloneBrowser" \
+    S6_KILL_GRACETIME=8000 \
+    QT_X11_NO_MITSHM=1 \
+    LANG=C.UTF-8
 
-# Add files.
+# ติดตั้ง runtime dependencies เท่านั้น
+RUN apk add --no-cache \
+        ca-certificates \
+        fuse \
+        dbus \
+        qt5-qtbase \
+        qt5-qtmultimedia \
+        qt5-qtdeclarative \
+        qt5-qtsvg \
+        qt5-qtbase-x11 \
+        libstdc++ \
+        xterm \
+    && rm -rf /var/cache/apk/*
+
+# คัดลอกไฟล์จาก build stage
+COPY --from=build /usr/local/bin/rclone /usr/bin/rclone
+COPY --from=build /tmp/src/build/build/rclone-browser /usr/bin/rclone-browser
+
 COPY rootfs/ /
 COPY VERSION /
 
-# Set environment variables.
-ENV APP_NAME="RcloneBrowser" \
-    S6_KILL_GRACETIME=8000
+# ปรับแต่ง Openbox window title
+RUN sed -i 's/<application type="normal">/<application type="normal" title="Rclone Browser">/' \
+        /etc/xdg/openbox/rc.xml
 
-# Define mountable directories.
-VOLUME ["/config"]
-VOLUME ["/media"]
+# เพิ่มไอคอนแอพ
+RUN APP_ICON_URL="https://github.com/rclone/rclone/raw/master/graphics/logo/logo_symbol/logo_symbol_color_512px.png" \
+    && install_app_icon.sh "$APP_ICON_URL"
 
-# Metadata.
+# เพิ่ม user ปลอดภัย (ไม่ใช้ root)
+RUN adduser -D appuser \
+    && mkdir -p /config /media \
+    && chown -R appuser:appuser /config /media
+
+USER appuser
+
+# Mount points
+VOLUME ["/config", "/media"]
+
+# Healthcheck
+HEALTHCHECK CMD pgrep -f rclone-browser || exit 1
+
+# Metadata
 LABEL \
-      org.label-schema.name="rclonebrowser" \
-      org.label-schema.description="Docker container for RcloneBrowser" \
-      org.label-schema.version="unknown" \
-      org.label-schema.vcs-url="https://github.com/romancin/rclonebrowser-docker" \
-      org.label-schema.schema-version="1.0"
+    org.label-schema.name="rclonebrowser" \
+    org.label-schema.description="Custom RcloneBrowser (Qt5 + Teldrive edition)" \
+    org.label-schema.version="${RCLONE_VERSION}" \
+    org.label-schema.vcs-url="https://github.com/totza2010/RcloneBrowser" \
+    org.label-schema.schema-version="1.0"
