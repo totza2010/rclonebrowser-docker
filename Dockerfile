@@ -77,8 +77,7 @@ RUN sed -i 's/<application type="normal">/<application type="normal" title="Rclo
         /etc/xdg/openbox/rc.xml
 
 # เพิ่มไอคอนแอพ
-RUN APP_ICON_URL="https://github.com/rclone/rclone/raw/master/graphics/logo/logo_symbol/logo_symbol_color_512px.png" \
-    && install_app_icon.sh "$APP_ICON_URL"
+COPY rootfs/icons/rclone-browser.png /usr/share/icons/hicolor/512x512/apps/rclone-browser.png
 
 # เพิ่ม user ปลอดภัย (ไม่ใช้ root)
 RUN adduser -D appuser \
