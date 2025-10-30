@@ -79,11 +79,6 @@ RUN sed -i 's/<application type="normal">/<application type="normal" title="Rclo
 # เพิ่มไอคอนแอพ
 COPY rootfs/icons/rclone-browser.png /usr/share/icons/hicolor/512x512/apps/rclone-browser.png
 
-# เพิ่ม user ปลอดภัย (ไม่ใช้ root)
-RUN adduser -D appuser \
-    && mkdir -p /config /media \
-    && chown -R appuser:appuser /config /media
-
 USER appuser
 
 # Mount points
