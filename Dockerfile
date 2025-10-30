@@ -36,7 +36,7 @@ RUN wget -qO /tmp/rclone.zip "${RCLONE_URL}" \
 WORKDIR /tmp/src
 RUN git clone https://github.com/totza2010/RcloneBrowser.git . \
     && mkdir build && cd build \
-    && cmake .. -DCMAKE_BUILD_TYPE=Release \
+    && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-Wno-maybe-uninitialized" \
     && make -j$(nproc) \
     && strip build/rclone-browser
 
