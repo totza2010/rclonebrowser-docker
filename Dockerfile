@@ -51,6 +51,7 @@ RUN wget -qO /tmp/rclone-browser.zip "$RCLONE_BROWSER_URL" \
 COPY rootfs/ /
 COPY VERSION /
 COPY rootfs/startapp.sh /startapp.sh
+RUN chmod +x /startapp.sh
 
 # ===== Icon =====
 COPY rootfs/icons/rclone-browser.png /usr/share/icons/hicolor/512x512/apps/rclone-browser.png
