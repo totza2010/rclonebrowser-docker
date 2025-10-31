@@ -51,9 +51,6 @@ RUN wget -qO /tmp/rclone-browser.zip "$RCLONE_BROWSER_URL" \
 COPY rootfs/ /
 COPY VERSION /
 
-# ===== UI Tweak =====
-RUN sed -i 's/<application type="normal">/<application type="normal" title="Rclone Browser">/' /etc/xdg/openbox/rc.xml
-
 # ===== Icon =====
 COPY rootfs/icons/rclone-browser.png /usr/share/icons/hicolor/512x512/apps/rclone-browser.png
 
