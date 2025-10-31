@@ -79,8 +79,6 @@ RUN sed -i 's/<application type="normal">/<application type="normal" title="Rclo
 # เพิ่มไอคอนแอพ
 COPY rootfs/icons/rclone-browser.png /usr/share/icons/hicolor/512x512/apps/rclone-browser.png
 
-USER appuser
-
 # Mount points
 VOLUME ["/config", "/media"]
 
