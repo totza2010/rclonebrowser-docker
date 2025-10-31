@@ -1,72 +1,42 @@
-#
-# Custom Rclone Browser (Qt5 + Teldrive edition)
-#
-
-# =========================
-# ==== RUNTIME STAGE ======
-# =========================
 FROM jlesage/baseimage-gui:alpine-3.12-glibc
 
-# ===== Environment =====
 ENV APP_NAME="RcloneBrowser" \
     S6_KILL_GRACETIME=8000 \
     QT_X11_NO_MITSHM=1 \
     LANG=C.UTF-8
 
-# ===== Runtime Dependencies =====
-RUN apk add --no-cache \
-        ca-certificates \
-        fuse \
-        dbus \
-        qt5-qtbase \
-        qt5-qtmultimedia \
-        qt5-qtdeclarative \
-        qt5-qtsvg \
-        qt5-qtbase-x11 \
-        libstdc++ \
-        xterm \
-        wget \
-        unzip
+RUN apk add --no-cache ca-certificates fuse dbus \
+        qt5-qtbase qt5-qtmultimedia qt5-qtdeclarative qt5-qtsvg qt5-qtbase-x11 \
+        libstdc++ xterm wget unzip \
+    && rm -rf /var/cache/apk/*
 
-# ===== Add rclone (Teldrive version) =====
-ARG ARCH=amd64
-ARG RCLONE_VERSION=v1.71.0
-RUN wget -qO /tmp/rclone.zip "https://github.com/tgdrive/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-${ARCH}.zip" \
-    && unzip -q /tmp/rclone.zip -d /tmp \
-    && mv /tmp/rclone-*-linux-${ARCH}/rclone /usr/bin/rclone \
-    && chmod +x /usr/bin/rclone \
-    && rm -rf /tmp/rclone*
+VOLUME ["/config", "/media", "/bin_override"]
 
-# ===== Download Rclone Browser binary (จาก GitHub Release) =====
-# ✅ โหลด binary ล่าสุดอัตโนมัติจากโปรเจกต์ totza2010/RcloneBrowser
-RUN wget -qO /usr/bin/rclone-browser \
-    $(wget -qO- https://api.github.com/repos/totza2010/RcloneBrowser/releases/latest \
-      | grep "browser_download_url" \
-      | grep -E "rclone-browser(_x86_64)?$" \
-      | head -n 1 \
-      | cut -d '"' -f 4) \
-    && chmod +x /usr/bin/rclone-browser
+# Environment variables สำหรับเลือก binary
+ENV RCLONE_BIN="/bin_override/rclone" \
+    RCLONE_BROWSER_BIN="/bin_override/rclone-browser" \
+    RCLONE_BROWSER_URL="" \
+    RCLONE_URL=""
 
-# ===== Copy rootfs and VERSION =====
+# copy binary override หรือดาวน์โหลด ถ้า URL มีค่า
+RUN sh -c '\
+    if [ -f "$RCLONE_BROWSER_BIN" ]; then \
+        cp "$RCLONE_BROWSER_BIN" /usr/bin/rclone-browser && chmod +x /usr/bin/rclone-browser; \
+    elif [ -n "$RCLONE_BROWSER_URL" ]; then \
+        TMPDIR=$(mktemp -d) && \
+        wget -qO "$TMPDIR/archive.zip" "$RCLONE_BROWSER_URL" && \
+        unzip -q "$TMPDIR/archive.zip" -d "$TMPDIR" && \
+        # ค้นหาไฟล์ rclone-browser ภายในโฟลเดอร์ unzip
+        find "$TMPDIR" -type f -name "rclone-browser" -exec cp {} /usr/bin/rclone-browser \; && \
+        chmod +x /usr/bin/rclone-browser && \
+        rm -rf "$TMPDIR"; \
+    fi \
+'
+
 COPY rootfs/ /
 COPY VERSION /
 
-# ===== UI Tweak =====
 RUN sed -i 's/<application type="normal">/<application type="normal" title="Rclone Browser">/' /etc/xdg/openbox/rc.xml
-
-# ===== Icon =====
 COPY rootfs/icons/rclone-browser.png /usr/share/icons/hicolor/512x512/apps/rclone-browser.png
 
-# ===== Mount Points =====
-VOLUME ["/config", "/media"]
-
-# ===== Healthcheck =====
 HEALTHCHECK CMD pgrep -f rclone-browser || exit 1
-
-# ===== Metadata =====
-LABEL \
-    org.label-schema.name="rclonebrowser" \
-    org.label-schema.description="Custom RcloneBrowser (Qt5 + Teldrive edition)" \
-    org.label-schema.version="${RCLONE_VERSION}" \
-    org.label-schema.vcs-url="https://github.com/totza2010/RcloneBrowser" \
-    org.label-schema.schema-version="1.0"
