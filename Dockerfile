@@ -1,9 +1,7 @@
 FROM jlesage/baseimage-gui:alpine-3.12-glibc
 
 ENV APP_NAME="RcloneBrowser" \
-    S6_KILL_GRACETIME=8000 \
-    QT_X11_NO_MITSHM=1 \
-    LANG=C.UTF-8
+    S6_KILL_GRACETIME=8000
 
 RUN apk add --no-cache ca-certificates fuse dbus \
         qt5-qtbase qt5-qtmultimedia qt5-qtdeclarative qt5-qtsvg qt5-qtbase-x11 \
