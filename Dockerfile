@@ -13,7 +13,7 @@ VOLUME ["/config", "/media", "/bin_override"]
 # Environment variables สำหรับเลือก binary
 ENV RCLONE_BIN="/bin_override/rclone" \
     RCLONE_BROWSER_BIN="/bin_override/rclone-browser" \
-    RCLONE_BROWSER_URL="" \
+    RCLONE_BROWSER_URL="https://github.com/totza2010/RcloneBrowser/releases/download/release-bb5c8721/linux.zip" \
     RCLONE_URL=""
 
 # copy binary override หรือดาวน์โหลด ถ้า URL มีค่า
@@ -24,7 +24,7 @@ RUN sh -c '\
         TMPDIR=$(mktemp -d) && \
         wget -qO "$TMPDIR/archive.zip" "$RCLONE_BROWSER_URL" && \
         unzip -q "$TMPDIR/archive.zip" -d "$TMPDIR" && \
-        # ค้นหาไฟล์ rclone-browser ภายในโฟลเดอร์ unzip
+        # ค้นหาไฟล์ rclone-browser ภายในโฟลเดอร์ unzip (รวม subfolder)
         find "$TMPDIR" -type f -name "rclone-browser" -exec cp {} /usr/bin/rclone-browser \; && \
         chmod +x /usr/bin/rclone-browser && \
         rm -rf "$TMPDIR"; \
