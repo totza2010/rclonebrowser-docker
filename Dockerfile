@@ -14,19 +14,19 @@ ENV APP_NAME="RcloneBrowser" \
     LANG=C.UTF-8
 
 # ===== Runtime Dependencies =====
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
         ca-certificates \
         fuse \
         dbus \
-        qt5-qtbase \
-        qt5-qtmultimedia \
-        qt5-qtdeclarative \
-        qt5-qtsvg \
-        qt5-qtbase-x11 \
-        libstdc++ \
+        qt5-default \
+        qtmultimedia5-dev \
+        qtdeclarative5-dev \
+        qtsvg5-dev \
         xterm \
         wget \
-        unzip
+        unzip \
+        libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # ===== Add rclone (Teldrive version) =====
 ARG ARCH=amd64
