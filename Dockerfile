@@ -5,7 +5,7 @@
 # =========================
 # ==== RUNTIME STAGE ======
 # =========================
-FROM jlesage/baseimage-gui:alpine-3.21-v4
+FROM jlesage/baseimage-gui:debian-12-v4
 
 # ===== Environment =====
 ENV APP_NAME="RcloneBrowser" \
