@@ -18,10 +18,15 @@ RUN apt-get update && apt-get install -y \
         ca-certificates \
         fuse \
         dbus \
-        qt5-default \
-        qtmultimedia5-dev \
+        qtbase5-dev \
+        libqt5multimedia5-dev \
+        libqt5svg5-dev \
         qtdeclarative5-dev \
-        qtsvg5-dev \
+        qtmultimedia5-dev \
+        qml-module-qtquick2 \
+        qml-module-qtquick-controls \
+        qml-module-qtquick-controls2 \
+        qml-module-qtquick-dialogs \
         xterm \
         wget \
         unzip \
