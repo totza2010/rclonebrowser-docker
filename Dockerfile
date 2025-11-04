@@ -33,7 +33,7 @@ RUN apk --no-cache add \
         qt6-qtbase-dev \
         qt6-qtmultimedia-dev \
 # Compile RcloneBrowser
-    && git clone https://github.com/kapitainsky/RcloneBrowser.git /tmp \
+    && git clone https://github.com/totza2010/RcloneBrowser.git /tmp \
     && mkdir /tmp/build \
     && cd /tmp/build \
     && cmake .. \
