@@ -1,13 +1,19 @@
-rclonebrowser_service:
-    image: romancin/rclonebrowser:latest
+services:
+  rclonebrowser_service:
+    image: totza2010/rclonebrowser:latest
     container_name: rclonebrowser
     ports:
       - "5804:5800"
     environment:
       - USER_ID=0
       - GROUP_ID=0
-      - TZ=Europe/Madrid
+      - TZ=Asia/Bangkok
       - VNC_PASSWORD=password
+      - INSTALL_PACKAGES=font-noto-cjk font-noto-all
+      - KEEP_APP_RUNNING=true
+      - APP_NICENESS=-20
+    cap_add:
+      - SYS_NICE
     volumes:
-      - "/share/Container/rclonebrowser:/config:rw"
-      - "/share/Container/rclonebrowser/shared:/shared:rw"
+      - "/home/totza2010/.config/rclone:/config:rw"
+      - "/mnt:/shared:rw"

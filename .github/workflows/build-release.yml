@@ -2,13 +2,9 @@ name: "[builder] CI for releases"
 
 on:
   repository_dispatch:
-    types: build
+    types: [build]
   release:
     types: [published]
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    # UTC 17:00 -> CST (China) 1:00, see https://datetime360.com/cn/utc-cst-china-time/
-    - cron: '0 17 * * *'
   watch:
     types: [started]
   push:
@@ -26,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Docker Image 构建环境
+      # Docker setup
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
