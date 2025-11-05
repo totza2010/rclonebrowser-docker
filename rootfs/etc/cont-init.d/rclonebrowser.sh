@@ -1,6 +1,9 @@
 #!/bin/sh
 set -eu
 
-echo "[cont-init.d] $(basename $0): initializing..."
+log() {
+    echo "[cont-init.d] $(basename $0): $*"
+}
+
 mkdir -p /config/logs
-chown -R ${USER_ID:-0}:${GROUP_ID:-0} /config || true
+chown -R $USER_ID:$GROUP_ID /config/*
